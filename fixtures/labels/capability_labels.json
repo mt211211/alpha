@@ -1,0 +1,60 @@
+{
+  "about": "Hand-labelled tool declarations used to score the capability inference in mcpmap/taxonomy.py. Labels are the authors' judgement of what capability a tool would need in order to do what its declaration says. Declarations are written to resemble real published MCP tools, including awkward and ambiguous cases; a label set of only easy cases would overstate the inference's accuracy. Disputes about individual labels are welcome as issues.",
+  "labelled_by": "mcpmap authors",
+  "labelled_at": "2026-09-01",
+  "labels": [
+    {"name": "read_file", "description": "Read a file from the local filesystem and return its contents.", "input_keys": ["path"], "capabilities": ["filesystem_read"]},
+    {"name": "write_file", "description": "Write content to a file on disk, creating it if needed.", "input_keys": ["path", "content"], "capabilities": ["filesystem_write"]},
+    {"name": "list_directory", "description": "List files in a directory.", "input_keys": ["path"], "capabilities": ["filesystem_read"]},
+    {"name": "delete_file", "description": "Delete a file at the given path.", "input_keys": ["path"], "capabilities": ["filesystem_write"]},
+    {"name": "search_files", "description": "Search the local checkout for a pattern and return matching lines.", "input_keys": ["pattern"], "capabilities": ["filesystem_read"]},
+    {"name": "edit_file", "description": "Apply a patch to a file in the workspace.", "input_keys": ["path", "patch"], "capabilities": ["filesystem_write"]},
+
+    {"name": "fetch_url", "description": "Perform an http request to the supplied url and return the body.", "input_keys": ["url"], "capabilities": ["network"]},
+    {"name": "post_webhook", "description": "Send a payload to a webhook url.", "input_keys": ["url", "payload"], "capabilities": ["network"]},
+    {"name": "download_asset", "description": "Download a file from a remote server and save it locally.", "input_keys": ["url", "path"], "capabilities": ["network", "filesystem_write"]},
+    {"name": "browse_page", "description": "Fetch a web page and return the rendered text.", "input_keys": ["url"], "capabilities": ["network"]},
+    {"name": "upload_report", "description": "Upload the generated report to the remote endpoint.", "input_keys": ["url", "body"], "capabilities": ["network"]},
+
+    {"name": "run_command", "description": "Execute a shell command on the host and return stdout.", "input_keys": ["command"], "capabilities": ["shell"]},
+    {"name": "exec_script", "description": "Run a bash script and capture its output.", "input_keys": ["script"], "capabilities": ["shell"]},
+    {"name": "spawn_process", "description": "Start a subprocess with the given arguments.", "input_keys": ["args"], "capabilities": ["shell"]},
+    {"name": "eval_python", "description": "Evaluate python code in the current interpreter.", "input_keys": ["code"], "capabilities": ["shell"]},
+
+    {"name": "get_api_key", "description": "Return the stored api key for a named service.", "input_keys": ["service"], "capabilities": ["credentials"]},
+    {"name": "read_secret", "description": "Read a secret from the local credential store.", "input_keys": ["name"], "capabilities": ["credentials"]},
+    {"name": "rotate_token", "description": "Rotate the access token used for authentication.", "input_keys": ["token"], "capabilities": ["credentials"]},
+
+    {"name": "run_query", "description": "Execute a sql query against the configured database.", "input_keys": ["sql"], "capabilities": ["database"]},
+    {"name": "list_tables", "description": "Return the tables available in the connected database.", "input_keys": [], "capabilities": ["database"]},
+    {"name": "insert_record", "description": "Insert a record into a table.", "input_keys": ["table", "values"], "capabilities": ["database"]},
+    {"name": "find_documents", "description": "Query a mongo collection and return matching documents.", "input_keys": ["collection", "filter"], "capabilities": ["database"]},
+
+    {"name": "summarise", "description": "Summarise the supplied text.", "input_keys": ["text"], "capabilities": []},
+    {"name": "convert_units", "description": "Convert a value between two units of measurement.", "input_keys": ["value", "from", "to"], "capabilities": []},
+    {"name": "translate", "description": "Translate the supplied text into the target language.", "input_keys": ["text", "language"], "capabilities": []},
+    {"name": "format_json", "description": "Pretty print a json string.", "input_keys": ["text"], "capabilities": []},
+    {"name": "count_tokens", "description": "Return the number of tokens in the supplied text.", "input_keys": ["text"], "capabilities": []},
+    {"name": "roll_dice", "description": "Return a random number between one and the number of sides.", "input_keys": ["sides"], "capabilities": []},
+    {"name": "read_the_room", "description": "Analyse the sentiment of a conversation transcript supplied inline.", "input_keys": ["transcript"], "capabilities": []},
+    {"name": "diff_text", "description": "Return a unified diff between two supplied strings.", "input_keys": ["before", "after"], "capabilities": []},
+
+    {"name": "get_weather", "description": "Return the current weather forecast for a city.", "input_keys": ["city"], "capabilities": ["network"]},
+    {"name": "search_web", "description": "Return search results for a query.", "input_keys": ["query"], "capabilities": ["network"]},
+    {"name": "create_issue", "description": "Open an issue on the project tracker.", "input_keys": ["title", "body"], "capabilities": ["network"]},
+    {"name": "send_message", "description": "Post a message to the team channel.", "input_keys": ["channel", "text"], "capabilities": ["network"]},
+    {"name": "get_stock_price", "description": "Look up the latest price for a ticker symbol.", "input_keys": ["symbol"], "capabilities": ["network"]},
+
+    {"name": "sync_workspace", "description": "Read the workspace files and mirror them to the configured remote bucket.", "input_keys": ["path", "url"], "capabilities": ["filesystem_read", "network"]},
+    {"name": "backup_database", "description": "Export the database to a local dump file.", "input_keys": ["path"], "capabilities": ["database", "filesystem_write"]},
+    {"name": "deploy_release", "description": "Run the deploy script and post the outcome to the release webhook.", "input_keys": ["script", "url"], "capabilities": ["shell", "network"]},
+    {"name": "load_config", "description": "Read the configuration file and return the parsed settings, including any api key it contains.", "input_keys": ["path"], "capabilities": ["filesystem_read", "credentials"]},
+
+    {"name": "index_repository", "description": "Walk the repository on disk and build a local search index.", "input_keys": ["path"], "capabilities": ["filesystem_read", "filesystem_write"]},
+    {"name": "open_ticket", "description": "Create a support ticket in the helpdesk system.", "input_keys": ["subject"], "capabilities": ["network"]},
+    {"name": "list_branches", "description": "Return the branches in the local git checkout.", "input_keys": ["path"], "capabilities": ["filesystem_read"]},
+    {"name": "clear_cache", "description": "Remove cached files from the temporary directory.", "input_keys": [], "capabilities": ["filesystem_write"]},
+    {"name": "whoami", "description": "Return the identity the server is currently authenticated as.", "input_keys": [], "capabilities": ["credentials"]},
+    {"name": "healthcheck", "description": "Return ok if the server is running.", "input_keys": [], "capabilities": []}
+  ]
+}

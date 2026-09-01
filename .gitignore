@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Collected snapshots and API cache are local research data, not source.
+# Anchored to the repo root so the synthetic corpus in fixtures/ is kept.
+/snapshots/
+/report.md
+.cache/
