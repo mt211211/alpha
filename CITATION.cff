@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "mcpmap: an empirical risk study of the public MCP server ecosystem"
+message: >-
+  If you use this instrument or its figures, please cite it, and state the
+  taxonomy version alongside any capability figure you quote.
+type: software
+authors:
+  - name: "The mcpmap contributors"
+repository-code: "https://github.com/mt211211/alpha"
+license: MIT
+version: 0.1.0
+date-released: "2026-09-01"
+keywords:
+  - model context protocol
+  - agent security
+  - supply chain
+  - measurement study
+abstract: >-
+  mcpmap measures the risk distribution of publicly published Model Context
+  Protocol servers and how that distribution drifts over time, from published
+  metadata only. Capabilities are inferred from tool names, descriptions and
+  schema keys; the inference is scored against a hand-labelled set that ships
+  with the instrument, so capability figures can be published as measured lower
+  bounds rather than assertions. The instrument never installs, launches,
+  connects to or invokes an MCP server.

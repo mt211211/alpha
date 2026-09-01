@@ -6,7 +6,8 @@ project. Their job is to exercise every code path -- each risk flag and each
 drift event type -- so the pipeline is testable and demonstrable with no
 network access.
 
-    python fixtures/build_fixtures.py
+    python fixtures/build_fixtures.py            # regenerate
+    python fixtures/build_fixtures.py --check    # verify the committed corpus
 """
 
 from __future__ import annotations
@@ -174,17 +175,50 @@ def population_t1() -> list[ServerRecord]:
     return sorted(records.values(), key=lambda record: record.key)
 
 
-def main() -> int:
+def build() -> list[Snapshot]:
+    return [
+        Snapshot(snapshot_id="2026-06-01-synthetic", captured_at=T0,
+                 records=sorted(population_t0(), key=lambda r: r.key),
+                 sources=["fixtures"],
+                 notes="Synthetic baseline. Invented servers under example-* namespaces."),
+        Snapshot(snapshot_id="2026-09-01-synthetic", captured_at=T1,
+                 records=population_t1(), sources=["fixtures"],
+                 notes="Synthetic follow-up exercising every drift event type."),
+    ]
+
+
+def check() -> int:
+    """Verify the committed corpus still matches what this generator produces.
+
+    The fixtures are checked in so reviewers can read them, which means they
+    could drift from the code that claims to generate them. This closes that gap.
+    """
+    failures = 0
+    for snapshot in build():
+        path = OUT / f"{snapshot.snapshot_id}.json"
+        if not path.exists():
+            print(f"MISSING  {path}")
+            failures += 1
+            continue
+        committed = corpus.load(path)
+        if committed.digest != snapshot.digest:
+            print(f"STALE    {path}\n"
+                  f"         committed {committed.digest[:12]} != generated {snapshot.digest[:12]}")
+            failures += 1
+        else:
+            print(f"OK       {path.name}  digest {snapshot.digest[:12]}")
+    if failures:
+        print(f"\n{failures} fixture(s) out of date -- run: python fixtures/build_fixtures.py")
+    return 1 if failures else 0
+
+
+def main(argv=None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if "--check" in argv:
+        return check()
     if OUT.exists():
         shutil.rmtree(OUT)
-    first = Snapshot(snapshot_id="2026-06-01-synthetic", captured_at=T0,
-                     records=sorted(population_t0(), key=lambda r: r.key),
-                     sources=["fixtures"],
-                     notes="Synthetic baseline. Invented servers under example-* namespaces.")
-    second = Snapshot(snapshot_id="2026-09-01-synthetic", captured_at=T1,
-                      records=population_t1(), sources=["fixtures"],
-                      notes="Synthetic follow-up exercising every drift event type.")
-    for snapshot in (first, second):
+    for snapshot in build():
         path = corpus.save(snapshot, OUT)
         print(f"wrote {path}  ({len(snapshot.records)} servers, digest {snapshot.digest[:12]})")
     return 0

@@ -1,5 +1,7 @@
 # The map — an empirical risk study of the public MCP ecosystem
 
+[![ci](https://github.com/mt211211/alpha/actions/workflows/ci.yml/badge.svg)](https://github.com/mt211211/alpha/actions/workflows/ci.yml)
+
 `mcpmap` measures the risk distribution of publicly published Model Context
 Protocol servers, and how that distribution **drifts over time**.
 
@@ -31,18 +33,18 @@ finding worth having.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[dev]"
 
 # score the capability inference against hand labels
-python -m mcpmap validate
+mcpmap validate
 
 # analyse a snapshot, and compare two
-python -m mcpmap analyse fixtures/snapshots/2026-09-01-synthetic.json
-python -m mcpmap drift  fixtures/snapshots/2026-06-01-synthetic.json \
+mcpmap analyse fixtures/snapshots/2026-09-01-synthetic.json
+mcpmap drift  fixtures/snapshots/2026-06-01-synthetic.json \
                         fixtures/snapshots/2026-09-01-synthetic.json
 
 # the full study report
-python -m mcpmap report fixtures/snapshots/2026-09-01-synthetic.json \
+mcpmap report fixtures/snapshots/2026-09-01-synthetic.json \
        --drift-from fixtures/snapshots/2026-06-01-synthetic.json -o report.md
 
 pytest -q
@@ -55,8 +57,8 @@ reviewer can reproduce every number with only this repository.
 
 ```bash
 export GITHUB_TOKEN=...          # optional, but uses the higher rate limit
-python -m mcpmap collect --source github --limit 200 --out snapshots/
-python -m mcpmap report snapshots/<new>.json --drift-from snapshots/<older>.json
+mcpmap collect --source github --limit 200 --out snapshots/
+mcpmap report snapshots/<new>.json --drift-from snapshots/<older>.json
 ```
 
 Collection is throttled, request-budgeted and cached on disk. Re-running an
@@ -98,7 +100,7 @@ descriptions and schema keys. The inference is scored against a hand-labelled
 set that ships in the repo — precision 0.97, recall 0.79, F1 0.87 at taxonomy
 `2026.09.1`. Recall is the weak side, concentrated in `network`, because a tool
 called `get_weather` must make a network call but says nothing a keyword model
-can see. Run `python -m mcpmap validate` to reproduce the score, including the
+can see. Run `mcpmap validate` to reproduce the score, including the
 list of declarations it gets wrong.
 
 **Two denominators, never conflated.** *Population* is every server observed;
@@ -137,25 +139,52 @@ mcpmap/
   collect.py     source orchestration
   sources/       fixtures (offline) and github (live, throttled)
   cli.py         command line
+  data/          the hand-labelled capability validation set
 fixtures/
   snapshots/     two synthetic snapshots exercising every drift type
-  labels/        hand-labelled capability validation set
-docs/            methodology and ethics
+docs/            methodology, ethics, research plan
 ```
 
 The analysis path is pure — no clock, no network, no hidden state — so the risk
 logic can be reviewed and tested without a network or a database.
 
+## Safety, by construction
+
+`mcpmap` never installs, launches, connects to or invokes an MCP server. There
+is no subprocess call, package installer or MCP client anywhere in the package,
+and `tests/test_no_execution.py` enforces that structurally rather than trusting
+it — network access is confined to `mcpmap/sources/`, so the entire analysis
+path provably runs offline. CI proves it by running the analysis with outbound
+networking dropped.
+
+See [SECURITY.md](SECURITY.md) and [docs/ETHICS.md](docs/ETHICS.md), which also
+covers the dual-use question: a map of risky servers helps defenders and
+attackers alike, so findings are published in aggregate and individual servers
+are not named as risky.
+
 ## Status
 
-Early. The instrument works end to end on synthetic data and against the live
-GitHub API; the published findings do not exist yet, because they require
-snapshots separated by real time. The next milestones are a baseline collection,
-a larger labelled set to lift capability recall, and a second snapshot far
-enough out to make the drift rates meaningful.
+Early, and honest about it. The instrument works end to end on synthetic data
+and against the live GitHub API. **The findings do not exist yet** — they
+require snapshots separated by real time, and no baseline has been collected.
 
-Contributions, and disputes about individual capability labels, are welcome as
-issues.
+What exists: the measurement pipeline, the scored inference, the drift engine,
+and a reproducible synthetic corpus. What does not: any claim about the real
+ecosystem. [docs/RESEARCH_PLAN.md](docs/RESEARCH_PLAN.md) sets out the work
+packages, the acceptance thresholds, and the result that would falsify the
+premise.
+
+## Contributing
+
+Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). The most
+valuable contribution is often an argument that we labelled a tool wrongly; the
+label set decides how much weight the published figures can carry.
+
+## Citation
+
+If you use the instrument or quote its figures, cite it via
+[CITATION.cff](CITATION.cff) and state the taxonomy version alongside any
+capability figure.
 
 ## Licence
 

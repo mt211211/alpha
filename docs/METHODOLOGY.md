@@ -65,7 +65,7 @@ a keyword-and-verb model held as versioned data in `mcpmap/taxonomy.py`, so that
 it is inspectable and citable rather than buried in code.
 
 The inference is scored against a hand-labelled set of 45 tool declarations that
-ships in `fixtures/labels/capability_labels.json`. At taxonomy `2026.09.1`:
+ships in `mcpmap/data/capability_labels.json`. At taxonomy `2026.09.1`:
 
 | Measure | Value |
 | --- | --- |

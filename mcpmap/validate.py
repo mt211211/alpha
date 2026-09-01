@@ -16,7 +16,9 @@ from pathlib import Path
 
 from mcpmap.taxonomy import CAPABILITY_SIGNALS, TAXONOMY_VERSION, capabilities_of
 
-LABELS_PATH = Path(__file__).resolve().parents[1] / "fixtures" / "labels" / "capability_labels.json"
+# Ships inside the package so `pip install mcpmap && mcpmap validate` works
+# without a source checkout. The label set is research data, not a fixture.
+LABELS_PATH = Path(__file__).resolve().parent / "data" / "capability_labels.json"
 
 
 def load_labels(path=None) -> list[dict]:

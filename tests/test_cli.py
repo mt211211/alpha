@@ -68,3 +68,17 @@ def test_validate_passes_a_reachable_threshold():
 def test_missing_snapshot_is_an_error_not_a_traceback(capsys):
     assert main(["analyse", "does-not-exist.json"]) == 2
     assert "error:" in capsys.readouterr().err
+
+
+def test_committed_fixture_corpus_matches_its_generator():
+    """The fixtures are checked in, so they can drift from the code that makes them."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, "fixtures/build_fixtures.py", "--check"],
+        cwd=root, capture_output=True, text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
