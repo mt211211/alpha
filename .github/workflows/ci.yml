@@ -47,20 +47,35 @@ jobs:
           grep -q "Panel (present in both)" /tmp/report.md
 
       # The analysis path must never need the network. Prove it by running it
-      # inside an empty network namespace. `unshare -rn` isolates only this
-      # command -- it does not touch the runner's own networking, which a
-      # blanket iptables DROP would (taking the job's control plane with it).
+      # inside an empty network namespace, isolating only these commands --
+      # never the runner itself, whose own control-plane connection a blanket
+      # firewall rule would also sever.
       - name: Analysis path runs with no network access
         run: |
-          # Positive control: the isolation must actually isolate, or the rest
-          # of this step silently passes and proves nothing.
-          if unshare -rn curl -sS --max-time 5 https://1.1.1.1 > /dev/null 2>&1; then
+          # Pick a namespace mechanism that actually works here. GitHub runners
+          # restrict unprivileged user namespaces, so `unshare -rn` fails --
+          # and a failed unshare looks exactly like "the network was
+          # unreachable", which would make every check below pass while
+          # proving nothing. So establish the sandbox works before trusting it.
+          if sudo -n unshare -n true 2>/dev/null; then
+            ns() { sudo -n unshare -n env "PATH=$PATH" "$@"; }
+            echo "using: sudo unshare -n"
+          elif unshare -rn true 2>/dev/null; then
+            ns() { unshare -rn "$@"; }
+            echo "using: unshare -rn"
+          else
+            echo "::error::no usable network namespace; this check cannot run"
+            exit 1
+          fi
+
+          # Positive control: the namespace must genuinely have no network.
+          if ns curl -sS --max-time 5 https://1.1.1.1 > /dev/null 2>&1; then
             echo "::error::network reachable inside the namespace; this check proves nothing"
             exit 1
           fi
           echo "network namespace confirmed empty"
 
-          unshare -rn mcpmap analyse fixtures/snapshots/2026-09-01-synthetic.json > /dev/null
-          unshare -rn mcpmap validate --min-f1 0.85 > /dev/null
-          unshare -rn python -m pytest -q tests/test_no_execution.py
+          ns mcpmap analyse fixtures/snapshots/2026-09-01-synthetic.json > /dev/null
+          ns mcpmap validate --min-f1 0.85 > /dev/null
+          ns python -m pytest -q tests/test_no_execution.py
           echo "analysis path is offline-clean"
