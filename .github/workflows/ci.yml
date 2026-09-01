@@ -11,6 +11,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -35,9 +36,8 @@ jobs:
       - name: Capability inference accuracy gate
         run: mcpmap validate --min-f1 0.85
 
-      - name: Fixture corpus is reproducible
-        run: |
-          python fixtures/build_fixtures.py --check
+      - name: Fixture corpus is reproducible from its generator
+        run: python fixtures/build_fixtures.py --check
 
       - name: Report pipeline smoke test
         run: |
@@ -46,18 +46,21 @@ jobs:
             --now 2026-09-01T00:00:00+00:00 -o /tmp/report.md
           grep -q "Panel (present in both)" /tmp/report.md
 
-  offline:
-    # The analysis path must never need the network. Prove it by removing it.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install -e ".[dev]"
-      - name: Analysis runs with no network access
+      # The analysis path must never need the network. Prove it by running it
+      # inside an empty network namespace. `unshare -rn` isolates only this
+      # command -- it does not touch the runner's own networking, which a
+      # blanket iptables DROP would (taking the job's control plane with it).
+      - name: Analysis path runs with no network access
         run: |
-          sudo iptables -P OUTPUT DROP
-          sudo iptables -A OUTPUT -o lo -j ACCEPT
-          mcpmap analyse fixtures/snapshots/2026-09-01-synthetic.json > /dev/null
-          mcpmap validate --min-f1 0.85 > /dev/null
+          # Positive control: the isolation must actually isolate, or the rest
+          # of this step silently passes and proves nothing.
+          if unshare -rn curl -sS --max-time 5 https://1.1.1.1 > /dev/null 2>&1; then
+            echo "::error::network reachable inside the namespace; this check proves nothing"
+            exit 1
+          fi
+          echo "network namespace confirmed empty"
+
+          unshare -rn mcpmap analyse fixtures/snapshots/2026-09-01-synthetic.json > /dev/null
+          unshare -rn mcpmap validate --min-f1 0.85 > /dev/null
+          unshare -rn python -m pytest -q tests/test_no_execution.py
+          echo "analysis path is offline-clean"
